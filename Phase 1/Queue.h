@@ -11,7 +11,7 @@ using namespace std;
 template <class TYPE>
 class Queue {
 
-private:
+protected: //Sam Drake: changed the private members to protected members to make them visible in Child class Mailbox @ IPC.h, 4/4/2026
     struct node {
         TYPE value;
         node *next;
