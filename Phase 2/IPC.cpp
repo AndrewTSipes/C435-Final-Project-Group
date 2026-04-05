@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
+
 std::string Message::print()
 {
     std::ostringstream msg;
@@ -17,8 +18,38 @@ std::string Message::print()
     msg << std::endl;
     return msg.str();
 }
+Message::Message(int s_id, int d_id, Message_Type msg_t, char *msg) 
+    : Source_Task_Id(s_id),
+    Destination_Task_Id(d_id),
+    Msg_Type(msg_t)
+{
+    if(msg == nullptr) return;
+    Msg_Size = strlen(msg) + 1;// Note: strlen() returns the length of a c string NOT INCLUDING THE NULL TERMINATOR.
+    //For this reason, Msg_Size is incremented to include the null terminator in the copy.
+    Msg_Text = new char[Msg_Size];
+    memcpy(Msg_Text, msg, Msg_Size);
+}
 
-void Mailbox::print_all()
+Message::Message(Message &msg)
+    : Source_Task_Id(msg.Source_Task_Id),
+    Destination_Task_Id(msg.Destination_Task_Id),
+    Msg_Type(msg.Msg_Type),
+    Msg_Size(msg.Msg_Size)
+{
+    Msg_Text = new char[Msg_Size];
+    memcpy(Msg_Text, msg.Msg_Text, Msg_Size);
+}
+Message::~Message()
+{
+    delete Msg_Text;
+}
+ipc::Mailbox::Mailbox(scheduler *sched, std::string name) : sema(semaphore(1, name, sched))
+{}
+
+ipc::Mailbox::Mailbox() : sema(semaphore(1, "mailbox", nullptr))
+{}
+
+void ipc::Mailbox::print_all()
 {
     std::cout << std::left << std::setw(20) << "Source Task-id";
     std::cout << std::left << std::setw(30) << "Destination Task-id";
@@ -35,12 +66,27 @@ void Mailbox::print_all()
         ptr = ptr->next;
     }
 }
-ipc::ipc(int max_tasks, int &error_code) : max_tasks(max_tasks)
+ipc::ipc(int max_tasks, int &error_code, scheduler *sched) : max_tasks(max_tasks)
 {
-    mailbox = new Mailbox[max_tasks];
+    mailbox = new ipc::Mailbox[max_tasks];
+    for(int i = 0; i < max_tasks; i++)
+    {
+        std::stringstream name;
+        name << "mailbox_" << i;
+        mailbox[i] = Mailbox(sched, name.str());
+    }
     msg_count = new int[max_tasks]{};
 }
 
+int ipc::Message_Send(Message* msg)
+{
+    if(msg == nullptr) return -1;
+    int d_id = msg->Destination_Task_Id;
+    msg->Message_Arrival_Time = time(nullptr);
+    mailbox[d_id].En_Q(*msg);
+    msg_count[d_id]++;
+    return 1;
+}
 int ipc::Message_Send(int Sender_Id, int Destination_Id, char *message, int message_type)
 {
     if(message == nullptr) return -1;
@@ -56,16 +102,12 @@ int ipc::Message_Send(int Sender_Id, int Destination_Id, char *message, int mess
     //This assumes that the task_id will be the same as the task's mailbox' position in the array
     //This will also require that the number of tasks stays below max_tasks
     //I recommend creating a global variable called MAX_TASKS for this purpose
-    mailbox[Destination_Id].En_Q(
-        Message {
-            Sender_Id,
-            Destination_Id,
-            time(nullptr),
-            msg_type,
-            std::strlen(message),
-            message,
-        }
-    );
+    auto msg_length = strlen(message) + 1;
+    char *msg = new char[msg_length];
+    memcpy(msg, message, msg_length);
+    Message new_msg = Message(Sender_Id, Destination_Id, msg_type, message);
+    new_msg.Message_Arrival_Time = time(nullptr);
+    mailbox[Destination_Id].En_Q(new_msg);
     msg_count[Destination_Id]++;
     return 1;
 }
@@ -74,12 +116,19 @@ int ipc::Message_Receive(int Task_Id, char* message, int *msg_type)
 {
     if(mailbox[Task_Id].isEmpty()) return 0;
     Message msg = mailbox[Task_Id].De_Q();
-    message = msg.Msg_Text;
+    memcpy(message, msg.Msg_Text, msg.Msg_Size);
     *msg_type = msg.Msg_Type.Message_Type_Id;
     msg_count[Task_Id]--;
     return 1;
 }
 
+int ipc::Message_Receive(int Task_Id, Message *message)
+{
+    if(mailbox[Task_Id].isEmpty()) return 0;
+    *message = mailbox[Task_Id].De_Q();
+    msg_count[Task_Id]--;
+    return 1;
+}
 int ipc::Message_Count(int Task_id)
 {
     return msg_count[Task_id];
