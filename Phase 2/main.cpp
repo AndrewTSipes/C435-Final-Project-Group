@@ -1,5 +1,6 @@
 #include "Sched.h"
 #include "Sema.h"
+#include "IPC.h"
 #include <ncurses.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -14,7 +15,8 @@ pthread_mutex_t myMutex = PTHREAD_MUTEX_INITIALIZER;
 // -----------------------------
 void safe_write(WINDOW* win, const char* text) {
     pthread_mutex_lock(&myMutex);
-    wprintw(win, text);
+    wmove(win, 1, 1);
+    wprintw(win, "%s", text);
     box(win, 0, 0);
     wrefresh(win);
     pthread_mutex_unlock(&myMutex);
@@ -94,6 +96,13 @@ int main() {
     int tB = S.create_task("B");
     int tC = S.create_task("C");
 
+    // ------------------------------
+    // Create IPC for testing
+    // ------------------------------
+    int ipc_error = 0;
+    ipc messenger(3, ipc_error, &S);
+
+
     // -----------------------------
     // Semaphore for testing
     // -----------------------------
@@ -118,6 +127,11 @@ int main() {
                 S.dump_to_window(Log_Win);
                 break;
 
+            case 'g':   // garbage collect
+                safe_write(Log_Win, "Running garbage_collect...\n");
+                S.garbage_collect();
+                break;
+
             case '1':   // kill task A
                 safe_write(Log_Win, "Killing Task A...\n");
                 S.kill_task(tA);
@@ -133,11 +147,35 @@ int main() {
                 S.kill_task(tC);
                 break;
 
-            case 'g':   // garbage collect
-                safe_write(Log_Win, "Running garbage_collect...\n");
-                S.garbage_collect();
+            case '4':   //A to B
+                messenger.Message_Send(tA, tB, (char*)"Hello from A...", 0);
+                safe_write(Log_Win, "A sent message to B successfully.\n");
                 break;
 
+            case '5':   //C to B
+                messenger.Message_Send(tC, tB, (const char*)"Hello from C...", 0);
+                safe_write(Log_Win, "C sent message to B successfully.\n");
+                break;
+
+            case '6':   //B receives
+            {
+                char buffer[128];
+                int msg_type;
+                if (messenger.Message_Receive(tB, buffer, &msg_type)) {
+                    safe_write(Log_Win, "Task B received a message...\n");
+                } else {
+                    safe_write(Log_Win, "Task B has no messages...\n");
+                }
+                break;
+            }
+
+            case '7':   //Print B Mailbox
+            {
+                char msg[100];
+                sprintf(msg, "Mailbox B count: %d\n", messenger.Message_Count(tB));
+                safe_write(Log_Win, msg);
+                break;
+            }
             default:
                 break;
         }

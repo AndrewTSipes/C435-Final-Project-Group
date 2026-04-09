@@ -18,6 +18,14 @@ std::string Message::print()
     msg << std::endl;
     return msg.str();
 }
+Message::Message()
+{
+    Source_Task_Id = 0;
+    Destination_Task_Id = 0;
+    Message_Arrival_Time = 0;
+    Msg_Size = 0;
+    Msg_Text = nullptr;
+}
 Message::Message(int s_id, int d_id, Message_Type msg_t, char *msg) 
     : Source_Task_Id(s_id),
     Destination_Task_Id(d_id),
@@ -41,7 +49,6 @@ Message::Message(Message &msg)
 }
 Message::~Message()
 {
-    delete Msg_Text;
 }
 ipc::Mailbox::Mailbox(scheduler *sched, std::string name) : sema(semaphore(1, name, sched))
 {}

@@ -13,9 +13,9 @@ struct Message_Type {
 };
 
 //Message type constants, will be added to if more message types become necessary
-const Message_Type MESSAGE_TYPE_TEXT {0, 'Text message, no response'};
-const Message_Type MESSAGE_TYPE_SERVICE_REQUEST {1, 'Request for service, send service notification back'};
-const Message_Type MESSAGE_TYPE_SERVICE_NOTIFICATION {2, 'Notification of service request result, no response'};
+const Message_Type MESSAGE_TYPE_TEXT {0, "Text message, no response"};
+const Message_Type MESSAGE_TYPE_SERVICE_REQUEST {1, "Request for service, send service notification back"};
+const Message_Type MESSAGE_TYPE_SERVICE_NOTIFICATION {2, "Notification of service request result, no response"};
 
 //Message struct
 struct Message {
@@ -25,6 +25,7 @@ struct Message {
     Message_Type Msg_Type;
     unsigned long Msg_Size;
     char *Msg_Text;
+    Message();
     Message(int s_id, int d_id, Message_Type msg_t, char *msg);
     Message(Message &msg);
     std::string print();

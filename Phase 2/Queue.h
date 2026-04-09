@@ -52,7 +52,7 @@ public:
         }
 
         size++;
-        cout << "En_Q: " << value << endl;
+        cout << "En_Q operation completed " << endl;
     }
 
     // Remove item from queue
@@ -73,7 +73,7 @@ public:
         delete temp;
         size--;
 
-        cout << "De_Q: " << value << endl;
+        cout << "De_Q operation completed " << endl;
         return value;
     }
 
@@ -98,7 +98,7 @@ public:
 
         node *ptr = head;
         while (ptr != nullptr) {
-            cout << ptr->value << " <- ";
+            cout << "[item] <- ";
             ptr = ptr->next;
         }
 
@@ -112,7 +112,7 @@ public:
         node *ptr = head;
 
         while (ptr != nullptr) {
-            ss << ptr->value << " ";
+            ss << "[item] ";
             ptr = ptr->next;
         }
 
