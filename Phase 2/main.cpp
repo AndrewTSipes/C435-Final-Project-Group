@@ -60,26 +60,29 @@ int main() {
     // CLEAN, NON-OVERLAPPING LAYOUT
     // -----------------------------
     // Heading at top
-    WINDOW* Heading_Win = create_window(5, 80, 1, 2);
-    safe_write_xy(Heading_Win, 1, 20, "ULTIMA 2.0 (Phase 1 Demo)");
-    safe_write_xy(Heading_Win, 3, 2, "Press 'q' to quit, 'y' to yield, 'd' to dump scheduler");
+    WINDOW* Heading_Win = create_window(7, 80, 1, 2);
+    safe_write_xy(Heading_Win, 1, 20, "ULTIMA 2.0 (Phase 2 Demo)");
+    safe_write_xy(Heading_Win, 2, 2, "q = quit, y = yield, d = dump scheduler, g = garbage collect");
+    safe_write_xy(Heading_Win, 3, 2, "1/2/3 = kill task A/B/C, 4 = A to B, 5 = C to B");
+    safe_write_xy(Heading_Win, 4, 2, "6 = B receive, 7 = B mailbox count");
+
 
     // Task windows below heading
     std::vector<WINDOW*> task_windows;
-    task_windows.push_back(create_window(8, 25, 7, 2));    // Task A
-    task_windows.push_back(create_window(8, 25, 7, 28));   // Task B
-    task_windows.push_back(create_window(8, 25, 7, 54));   // Task C
+    task_windows.push_back(create_window(8, 25, 9, 2));    // Task A
+    task_windows.push_back(create_window(8, 25, 9, 28));   // Task B
+    task_windows.push_back(create_window(8, 25, 9, 54));   // Task C
 
     safe_write(task_windows[0], "Task A Window\n");
     safe_write(task_windows[1], "Task B Window\n");
     safe_write(task_windows[2], "Task C Window\n");
 
     // Log window below task windows
-    WINDOW* Log_Win = create_window(12, 80, 16, 2);
+    WINDOW* Log_Win = create_window(12, 80, 18, 2);
     safe_write(Log_Win, "Log Window Initialized...\n");
 
     // Console window at bottom
-    WINDOW* Console_Win = create_window(6, 80, 29, 2);
+    WINDOW* Console_Win = create_window(6, 80, 31, 2);
     keypad(Console_Win, TRUE);
     wtimeout(Console_Win, -1);
     safe_write_xy(Console_Win, 1, 1, "Console Ready");
