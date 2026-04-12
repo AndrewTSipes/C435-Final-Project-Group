@@ -49,6 +49,7 @@ Message::Message(Message &msg)
 }
 Message::~Message()
 {
+    delete[] Msg_Text;
 }
 ipc::Mailbox::Mailbox(scheduler *sched, std::string name) : sema(semaphore(1, name, sched))
 {}
