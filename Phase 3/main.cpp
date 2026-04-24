@@ -118,7 +118,10 @@ int main() {
     sem.set_log_window(Log_Win);
 
     // ===== PHASE 3 ADDITION =====
-    mmu MemMgr(1024, '.', 64);
+    semaphore CoreMemory(1, "Core Memory", &S);
+    CoreMemory.set_log_window(Log_Win);
+
+    mmu MemMgr(1024, '.', 64, &S, &CoreMemory);
 
     // -----------------------------
     // Main input loop
@@ -225,8 +228,9 @@ int main() {
                 box(MemDump_Win, 0, 0);
                 wmove(MemDump_Win, 1, 1);
 
+                char* mem = MemMgr.getMemoryPtr();
                 for (int i = 0; i < 256; i++)
-                    waddch(MemDump_Win, '.'); // placeholder until memory[] is exposed
+                    waddch(MemDump_Win, mem[i]);
 
                 wrefresh(MemDump_Win);
                 break;
@@ -236,7 +240,7 @@ int main() {
                 wclear(BlockList_Win);
                 box(BlockList_Win, 0, 0);
 
-                MemoryBlock* cur = MemMgr.head;
+                MemoryBlock* cur = MemMgr.getHead();
                 int row = 1;
 
                 while (cur != nullptr && row < 10) {
