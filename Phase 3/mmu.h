@@ -2,68 +2,72 @@
 #define MMU_H
 
 #include <iostream>
+#include "Sched.h"     // ===== PHASE 3 ADDITION =====
+#include "Sema.h"      // ===== PHASE 3 ADDITION =====
 using namespace std;
 
 //Represents one chunk of memory
-//Each block is either free or allocated
-//We connect the blocks using a linked list
 class MemoryBlock {
-    public:
-        int handle; //ID for allocated blocks
-        int start; //Starting index for memroy array
-        int end; //Ending index for memory array
-        int size; //Size of the block in bytes
-        int current_location; //Current read / write position
-        int task_id; //Owner of the block (-1 = Free)
-        bool is_free; // T = Free , F = Allocated
-        MemoryBlock* next; //Points to next block in list
+public:
+    int handle;
+    int start;
+    int end;
+    int size;
+    int current_location;
+    int task_id;
+    bool is_free;
+    MemoryBlock* next;
 
-        //Constructor for initializing a mem. block
-        MemoryBlock(int h, int s, int e, int sz, int owner, bool freeFlag);
-        bool isValidAccess(int offset); //Checks offset value
-        void resetCurrent(); //Resets current_location
+    MemoryBlock(int h, int s, int e, int sz, int owner, bool freeFlag);
+    bool isValidAccess(int offset);
+    void resetCurrent();
 };
 
 class mmu {
-    private:
-        char* memory; //Actual memory array
-        int mem_size; //Size of memory
-        int block_size; //Allocation unit
-        int next_handle; //Used to make unique handles
-        MemoryBlock* head; //Start of linked list
-        MemoryBlock* findBlock(int memory_handle); //Helper to find block by its handle
+private:
+    char* memory;
+    int mem_size;
+    int block_size;
+    int next_handle;
+    MemoryBlock* head;
 
-    public:
+    MemoryBlock* findBlock(int memory_handle);
 
-        //Initializes memory and creates initial free block
-        mmu(int size, char default_initial_value, int block_size);
+    // ===== PHASE 3 ADDITIONS =====
+    scheduler* sched_ptr;        // so MMU can unblock tasks
+    semaphore* core_sema;        // protects memory operations
 
+public:
 
-        //Destructor
-        ~mmu();
+    // ===== PHASE 3 ADDITION =====
+    // Constructor now accepts scheduler + semaphore
+    mmu(int size, char default_initial_value, int block_size,
+        scheduler* sched = nullptr,
+        semaphore* core = nullptr);
 
-        //Allocates memory and returns a handle
-        int Mem_Alloc(int size); 
+    ~mmu();
 
-        //Frees memory associated with a handle
-        int Mem_Free(int memory_handle);
+    int Mem_Alloc(int size);
+    int Mem_Free(int memory_handle);
 
-        //Single letter read / write. Uses current location
-        int Mem_Read(int memory_handle, char* ch);
-        int Mem_Write(int memory_handle, char ch);
+    int Mem_Read(int memory_handle, char* ch);
+    int Mem_Write(int memory_handle, char ch);
 
-        //Multi letter read / write. Uses offset that starts at beginning of block
-        int Mem_Read(int memory_handle, int offset_from_beg, int text_size, char* text);
-        int Mem_Write(int memory_handle, int offset_from_beg, int text_size, char* text);
+    int Mem_Read(int memory_handle, int offset_from_beg, int text_size, char* text);
+    int Mem_Write(int memory_handle, int offset_from_beg, int text_size, char* text);
 
-        //Memory stats
-        int Mem_Left(); //Free memory
-        int Mem_Largest(); //Largest free block
-        int Mem_Smallest(); //Smallest free block
-        int Mem_Coalesce(); //Merges adjacent free blocks
-        int Mem_Dump(int starting_from, int num_bytes); //Prints raw memory
+    int Mem_Left();
+    int Mem_Largest();
+    int Mem_Smallest();
+    int Mem_Coalesce();
+    int Mem_Dump(int starting_from, int num_bytes);
 
-        void printBlocks(); //prints block list for debugging
-        int ResetCurrent(int memory_handle); //Resets the current_location of a block
+    void printBlocks();
+    int ResetCurrent(int memory_handle);
+
+    // ===== PHASE 3 ADDITIONS =====
+    char* getMemoryPtr() { return memory; }     // for ncurses dump
+    MemoryBlock* getHead() { return head; }     // for block list window
 };
+
 #endif
