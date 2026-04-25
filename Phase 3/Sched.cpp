@@ -181,9 +181,6 @@ void scheduler::garbage_collect() {
 
         if (ptr->state == DEAD) {
 
-            // ===== PHASE 3 ADDITION =====
-            // Memory cleanup will be triggered externally by MMU or MCB
-
             if (log_win) {
                 char buff[128];
                 sprintf(buff, "GC: Removing task #%d\n", ptr->task_id);
@@ -312,4 +309,11 @@ void scheduler::dump_to_window(WINDOW* win) {
 
     box(win, 0, 0);
     wrefresh(win);
+}
+
+// ------------------------------------------------------------
+// ⭐ MISSING FUNCTION — now added
+// ------------------------------------------------------------
+int scheduler::get_task_id() {
+    return current ? current->task_id : -1;
 }
