@@ -326,7 +326,7 @@ int mmu::Mem_Write(int memory_handle, char ch) {
 // ------------------------------------------------------------
 int mmu::Mem_Read(int memory_handle, char* ch) {
 
-    int task_id = sched_ptr ? sched_ptr->getget_task_id() : 0;
+    int task_id = sched_ptr ? sched_ptr->get_task_id() : 0;
     CORE_DOWN(task_id);
 
     MemoryBlock* block = findBlock(memory_handle);
