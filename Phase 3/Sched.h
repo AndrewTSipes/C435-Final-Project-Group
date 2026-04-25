@@ -23,10 +23,10 @@ struct tcb {
     tcb *next;
 
     // ===== PHASE 3 ADDITIONS =====
-    int memory_handle;     // handle returned by MMU
-    int base;              // starting address of allocated block
-    int limit;             // ending address of allocated block
-    int current_location;  // current read/write pointer inside block
+    int memory_handle;       // handle returned by MMU
+    int base;                // starting address of allocated block
+    int limit;               // ending address of allocated block
+    int current_location;    // current read/write pointer inside block
     bool waiting_for_memory; // used for shark-pond behavior
 };
 
@@ -61,6 +61,9 @@ public:
 
     // UI helper — dump scheduler into an ncurses window
     void dump_to_window(WINDOW* win);
+
+    // ===== PHASE 3 ADDITION: expose current task safely =====
+    tcb* get_current() { return current; }
 };
 
 #endif
