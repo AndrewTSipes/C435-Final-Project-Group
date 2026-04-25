@@ -107,7 +107,7 @@ int mmu::Mem_Alloc(int size) {
 
                 // ===== PHASE 3 ADDITION =====
                 if (sched_ptr) {
-                    tcb* t = sched_ptr->current;
+                    tcb* t = sched_ptr->get_current();
                     t->memory_handle = current->handle;
                     t->base = current->start;
                     t->limit = current->end;
@@ -146,7 +146,7 @@ int mmu::Mem_Alloc(int size) {
 
             // ===== PHASE 3 ADDITION =====
             if (sched_ptr) {
-                tcb* t = sched_ptr->current;
+                tcb* t = sched_ptr->get_current();
                 t->memory_handle = newBlock->handle;
                 t->base = newBlock->start;
                 t->limit = newBlock->end;
@@ -164,7 +164,7 @@ int mmu::Mem_Alloc(int size) {
     // ===== PHASE 3 ADDITION =====
     // Not enough memory → block task (shark pond)
     if (sched_ptr) {
-        tcb* t = sched_ptr->current;
+        tcb* t = sched_ptr->get_current();
         t->waiting_for_memory = true;
         sched_ptr->set_state(task_id, BLOCKED);
         sched_ptr->yield();
@@ -199,9 +199,8 @@ int mmu::Mem_Free(int memory_handle) {
             Mem_Coalesce();
 
             // ===== PHASE 3 ADDITION =====
-            // Unblock tasks waiting for memory
             if (sched_ptr) {
-                tcb* ptr = sched_ptr->current;
+                tcb* ptr = sched_ptr->get_current();
                 // Scheduler will handle waking tasks in main loop
             }
 
@@ -305,10 +304,9 @@ int mmu::Mem_Write(int memory_handle, char ch) {
         return -1;
     }
 
-    // ===== PHASE 3 ADDITION =====
     if (block->task_id != task_id) {
         CORE_UP();
-        return -1; // segmentation fault
+        return -1;
     }
 
     if (block->current_location > block->end) {
@@ -328,7 +326,7 @@ int mmu::Mem_Write(int memory_handle, char ch) {
 // ------------------------------------------------------------
 int mmu::Mem_Read(int memory_handle, char* ch) {
 
-    int task_id = sched_ptr ? sched_ptr->get_task_id() : 0;
+    int task_id = sched_ptr ? sched_ptr->getget_task_id() : 0;
     CORE_DOWN(task_id);
 
     MemoryBlock* block = findBlock(memory_handle);
@@ -338,10 +336,9 @@ int mmu::Mem_Read(int memory_handle, char* ch) {
         return -1;
     }
 
-    // ===== PHASE 3 ADDITION =====
     if (block->task_id != task_id) {
         CORE_UP();
-        return -1; // segmentation fault
+        return -1;
     }
 
     if (block->current_location > block->end) {
@@ -384,10 +381,9 @@ int mmu::Mem_Write(int memory_handle, int offset_from_beg, int text_size, char* 
         return -1;
     }
 
-    // ===== PHASE 3 ADDITION =====
     if (block->task_id != task_id) {
         CORE_UP();
-        return -1; // segmentation fault
+        return -1;
     }
 
     if (offset_from_beg < 0 || text_size < 0) {
@@ -424,10 +420,9 @@ int mmu::Mem_Read(int memory_handle, int offset_from_beg, int text_size, char* t
         return -1;
     }
 
-    // ===== PHASE 3 ADDITION =====
     if (block->task_id != task_id) {
         CORE_UP();
-        return -1; // segmentation fault
+        return -1;
     }
 
     if (offset_from_beg < 0 || text_size < 0) {
