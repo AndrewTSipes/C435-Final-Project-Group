@@ -11,7 +11,7 @@ using namespace std;
 template <class TYPE>
 class Queue {
 
-protected:   // changed from private → protected for Mailbox inheritance
+protected:
     struct node {
         TYPE value;
         node *next;
@@ -23,22 +23,16 @@ protected:   // changed from private → protected for Mailbox inheritance
 
 public:
 
-    // Constructor
-    // ------------------------------------------------
     Queue() {
         head = nullptr;
         tail = nullptr;
         size = 0;
     }
 
-    // Destructor
-    // ------------------------------------------------
     ~Queue() {
         Reset();
     }
 
-    // Add item to queue
-    // ------------------------------------------------
     void En_Q(TYPE value) {
         node *temp = new node;
         temp->value = value;
@@ -52,14 +46,11 @@ public:
         }
 
         size++;
-        cout << "En_Q operation completed " << endl;
     }
 
-    // Remove item from queue
-    // ------------------------------------------------
     TYPE De_Q() {
         if (head == nullptr) {
-            cout << "De_Q ERROR: Queue is empty!" << endl;
+            // Return a default-constructed TYPE
             return TYPE();
         }
 
@@ -73,25 +64,18 @@ public:
         delete temp;
         size--;
 
-        cout << "De_Q operation completed " << endl;
         return value;
     }
 
-    // Check if empty
-    // ------------------------------------------------
     int isEmpty() {
         return (size == 0);
     }
 
-    // Reset queue
-    // ------------------------------------------------
     void Reset() {
         while (!isEmpty())
             De_Q();
     }
 
-    // Print queue contents
-    // ------------------------------------------------
     void Print() {
         cout << "Queue Size: " << size << endl;
         cout << "Queue Head <- ";
@@ -105,8 +89,6 @@ public:
         cout << "Tail" << endl;
     }
 
-    // Return queue as string
-    // ------------------------------------------------
     string Get_Q_String() {
         stringstream ss;
         node *ptr = head;
