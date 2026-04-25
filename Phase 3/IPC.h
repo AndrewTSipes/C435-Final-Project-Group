@@ -25,16 +25,16 @@ struct Message {
     Message_Type Msg_Type;
     unsigned long Msg_Size;
     char *Msg_Text;
+
     Message();
     Message(int s_id, int d_id, Message_Type msg_t, char *msg);
-    Message(Message &msg);
+
+    // FIX: must take const Message& so it can copy temporaries
+    Message(const Message &msg);
+
     std::string print();
     ~Message();
 };
-
-//Mailbox. Represents one tasks incoming message. 
-//Maybe in this configuration the Destination_Task_Id field of the Message struct is redundent
-
 
 //Inter Process Communication class.
 //Holds and manages the mailboxes for every task.
@@ -51,22 +51,23 @@ private:
         Mailbox(scheduler *sched, std::string name);
         void print_all(); 
     };
+
     Mailbox *mailbox;
     int *msg_count;
     int max_tasks;
     scheduler *sched;
+
 public:
-    ipc(int max_tasks, int &error_code, scheduler *sched); //Constructor. max_tasks may become a global variable and not necessary as a parameter
-    int Message_Send(Message *msg); //Overloaded message_send function. Based on the outline from the assignment. Not implemented.
+    ipc(int max_tasks, int &error_code, scheduler *sched);
+    int Message_Send(Message *msg);
     int Message_Send(int Sender_Id, int Destination_Id, char *Message, int Message_Type);
     int Message_Receive(int Task_Id, Message *Message);
     int Message_Receive(int Task_Id, char *Message, int *Message_Type);
-    int Message_Count(int Task_id); //number of messages in a given task's mailbox
-    int Message_Count(); //number of messages in all tasks' mailboxes
-    void Message_Print(int Task_id); //prints all messages in a given task's mailbox
-    int Message_DeleteAll(int Task_id); //Deletes all messages in a given task's mailbox. Will need to be called when a task in destroyed.
-    void ipc_Message_Dump(); //prints all messages in all tasks' mailboxes
+    int Message_Count(int Task_id);
+    int Message_Count();
+    void Message_Print(int Task_id);
+    int Message_DeleteAll(int Task_id);
+    void ipc_Message_Dump();
 };
-
 
 #endif
