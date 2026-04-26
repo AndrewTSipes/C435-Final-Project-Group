@@ -198,7 +198,7 @@ int main() {
                 safe_write(Log_Win, msg);
                 break;
             }
-
+            // Fixed so blocks can be chosen to free by entering the handle ID
             case 'f': {
 
                 int handle;
@@ -216,7 +216,7 @@ int main() {
                 }
                 break;
             }
-
+            // Fixed so data and handle ID can be entered by the user. 
             case 'w': {
                 int handle;
                 safe_write(Console_Win, "Type handle #, then Enter...\n");
@@ -240,7 +240,7 @@ int main() {
                 }
                 break;
             }
-
+            //Fixed so handle id and byte range can be entered by the user.
             case 'r': {
                 char read[65];
                 int handle, start_pos, length;
@@ -251,15 +251,15 @@ int main() {
                 safe_write(Console_Win, "Type number of bytes to read, then Enter...\n");
                 wscanw(Console_Win, "%d", &length);
                 if (MemMgr.Mem_Read(handle, start_pos, length, read) == 0) {
-                    char msg[100];
-                    sprintf(msg, "Reading from handle %d, bytes %d to %d: %s\n", handle, read, start_pos, start_pos + length);
+                    char msg[120];
+                    sprintf(msg, "Reading from handle %d, bytes %d to %d: %s\n", handle, start_pos, start_pos + length, read);
                     safe_write(Log_Win, msg);
                 } else {
                     safe_write(Log_Win, "Read failed.\n");
                 }
                 break;
             }
-
+            //Fixed so that memory prints one block per line and the entire memory range is printed
             case 'D': {
                 wclear(MemDump_Win);
                 box(MemDump_Win, 0, 0);
@@ -281,6 +281,7 @@ int main() {
                 break;
             }
 
+            //Fixed so task Id shows per block and all 16 potential blocks can be printed
             case 'B': {
                 wclear(BlockList_Win);
                 box(BlockList_Win, 0, 0);
