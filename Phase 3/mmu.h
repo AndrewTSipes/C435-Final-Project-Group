@@ -29,6 +29,7 @@ private:
     int mem_size;
     int block_size;
     int next_handle;
+    char default_initial_value;
     MemoryBlock* head;
 
     MemoryBlock* findBlock(int memory_handle);

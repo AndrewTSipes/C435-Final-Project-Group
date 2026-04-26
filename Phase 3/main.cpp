@@ -64,7 +64,8 @@ int main() {
     safe_write_xy(Heading_Win, 1, 20, "ULTIMA 2.0 (Phase 3 Demo)");
     safe_write_xy(Heading_Win, 2, 2, "q = quit, y = yield, d = dump scheduler, g = garbage collect");
     safe_write_xy(Heading_Win, 3, 2, "1/2/3 = kill A/B/C, 4 = A->B, 5 = C->B, 6 = B recv, 7 = B count");
-    safe_write_xy(Heading_Win, 4, 2, "m = alloc, f = free, w = write, r = read, D = dump mem, B = blocks");
+    safe_write_xy(Heading_Win, 4, 2, "m = alloc, f = free, w = write, r = read, D = dump mem (any key to continue)");
+    safe_write_xy(Heading_Win, 5, 2, "B = blocks");
 
     // Task windows
     std::vector<WINDOW*> task_windows;
@@ -89,10 +90,10 @@ int main() {
     wmove(Console_Win, 2, 10);
 
     // ===== PHASE 3 ADDITION =====
-    WINDOW* MemDump_Win = create_window(12, 80, 38, 2);
+    WINDOW* MemDump_Win = create_window(18, 66, 38, 2);
     safe_write(MemDump_Win, "Memory Dump Window Ready...\n");
 
-    WINDOW* BlockList_Win = create_window(12, 80, 51, 2);
+    WINDOW* BlockList_Win = create_window(18, 80, 57, 2);
     safe_write(BlockList_Win, "Block List Window Ready...\n");
 
     // -----------------------------
@@ -128,7 +129,6 @@ int main() {
     // -----------------------------
     int ch;
     while ((ch = wgetch(Console_Win)) != 'q') {
-
         switch (ch) {
 
             case 'y':
@@ -200,22 +200,59 @@ int main() {
             }
 
             case 'f': {
-                safe_write(Log_Win, "Freeing handle 1...\n");
-                MemMgr.Mem_Free(1);
+
+                int handle;
+                safe_write(Console_Win, "Type handle #, then Enter...");
+                wscanw(Console_Win, "%d", &handle);
+                char buffer[32];
+                if(MemMgr.Mem_Free(handle) == 0)
+                {
+                    sprintf(buffer, "Freeing handle %d...\n", handle);
+                    safe_write(Log_Win, buffer);
+                }
+                else {
+                    sprintf(buffer, "Couldn't free handle %d\n", handle);
+                    safe_write(Log_Win, buffer);
+                }
                 break;
             }
 
             case 'w': {
-                safe_write(Log_Win, "Writing 'X' to handle 1...\n");
-                MemMgr.Mem_Write(1, 'X');
+                int handle;
+                safe_write(Console_Win, "Type handle #, then Enter...\n");
+                wscanw(Console_Win, "%d", &handle);
+                safe_write(Console_Win, "Type message to write, then Enter...\n");
+                char message[65] = {0};
+                wgetnstr(Console_Win, message, 64);
+                int length = strlen(message);
+                safe_write(Console_Win, "Type offset, then Enter (Overflow will fail to write)\n");
+                int offset;
+                wscanw(Console_Win, "%d", &offset);
+                char buffer[100];
+                if(MemMgr.Mem_Write(handle, offset, length, message) == 0)
+                {
+                    sprintf(buffer, "Wrting %s to handle %d...\n", message, handle);
+                    safe_write(Log_Win, buffer);
+                }
+                else {
+                    sprintf(buffer, "Couldn't write to handle %d...\n", handle);
+                    safe_write(Log_Win, buffer);
+                }
                 break;
             }
 
             case 'r': {
-                char ch;
-                if (MemMgr.Mem_Read(1, &ch) == 0) {
-                    char msg[80];
-                    sprintf(msg, "Read char: %c\n", ch);
+                char read[65];
+                int handle, start_pos, length;
+                safe_write(Console_Win, "Type handle #, then Enter...\n");
+                wscanw(Console_Win, "%d", &handle);
+                safe_write(Console_Win, "Type start read positiong, then Enter...\n");
+                wscanw(Console_Win, "%d", &start_pos);
+                safe_write(Console_Win, "Type number of bytes to read, then Enter...\n");
+                wscanw(Console_Win, "%d", &length);
+                if (MemMgr.Mem_Read(handle, start_pos, length, read) == 0) {
+                    char msg[100];
+                    sprintf(msg, "Reading from handle %d, bytes %d to %d: %s\n", handle, read, start_pos, start_pos + length);
                     safe_write(Log_Win, msg);
                 } else {
                     safe_write(Log_Win, "Read failed.\n");
@@ -226,11 +263,19 @@ int main() {
             case 'D': {
                 wclear(MemDump_Win);
                 box(MemDump_Win, 0, 0);
-                wmove(MemDump_Win, 1, 1);
 
                 char* mem = MemMgr.getMemoryPtr();
-                for (int i = 0; i < 256; i++)
-                    waddch(MemDump_Win, mem[i]);
+                int x_pos = 1, y_pos = 1;
+                for (int i = 0; i < 1024; i++)
+                {
+                    mvwaddch(MemDump_Win, y_pos, x_pos++, mem[i]);
+                    if(x_pos % 66 == 65)
+                    {
+                        x_pos = 1;
+                        y_pos++;
+                    } 
+                }
+                    
 
                 wrefresh(MemDump_Win);
                 break;
@@ -243,11 +288,12 @@ int main() {
                 MemoryBlock* cur = MemMgr.getHead();
                 int row = 1;
 
-                while (cur != nullptr && row < 10) {
+                while (cur != nullptr && row <= 16) {
                     mvwprintw(BlockList_Win, row++, 1,
-                        "%s H:%d S:%d E:%d Sz:%d",
+                        "%s H:%d S:%d E:%d Sz:%d Task:%s",
                         cur->is_free ? "Free" : "Used",
-                        cur->handle, cur->start, cur->end, cur->size
+                        cur->handle, cur->start, cur->end, cur->size, 
+                        cur->task_id >= 0 ? to_string(cur->task_id).c_str() : "NA"
                     );
                     cur = cur->next;
                 }

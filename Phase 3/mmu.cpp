@@ -1,5 +1,5 @@
 #include "mmu.h"
-
+#include <ncurses.h>
 // ------------------------------------------------------------
 // MemoryBlock Functions
 // ------------------------------------------------------------
@@ -27,8 +27,10 @@ void MemoryBlock::resetCurrent() {
 // MMU Constructor (Phase 3 updated)
 // ------------------------------------------------------------
 mmu::mmu(int size, char default_initial_value, int block_size,
-         scheduler* sched, semaphore* core)
+         scheduler* sched, semaphore* core) 
+         : default_initial_value(default_initial_value)
 {
+    
     mem_size = size;
     this->block_size = block_size;
     next_handle = 1;
@@ -128,6 +130,10 @@ int mmu::Mem_Alloc(int size) {
                 task_id,
                 false
             );
+            for(int i = newBlock->start; i <= newBlock->end; i++)
+            {
+                memory[i] = default_initial_value;    
+            }
 
             current->start = newBlock->end + 1;
             current->size = current->end - current->start + 1;
@@ -196,6 +202,7 @@ int mmu::Mem_Free(int memory_handle) {
             current->handle = 0;
             current->current_location = current->start;
 
+            
             Mem_Coalesce();
 
             // ===== PHASE 3 ADDITION =====
