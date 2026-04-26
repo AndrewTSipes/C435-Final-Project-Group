@@ -38,12 +38,11 @@ Message::Message(int s_id, int d_id, Message_Type msg_t, char *msg)
         return;
     }
 
-    Msg_Size = strlen(msg) + 1; // include null terminator
+    Msg_Size = strlen(msg) + 1;
     Msg_Text = new char[Msg_Size];
     memcpy(Msg_Text, msg, Msg_Size);
 }
 
-// *** FIX: take const Message& so we can copy temporaries and De_Q() results ***
 Message::Message(const Message &msg)
     : Source_Task_Id(msg.Source_Task_Id),
       Destination_Task_Id(msg.Destination_Task_Id),
@@ -81,6 +80,7 @@ void ipc::Mailbox::print_all()
     std::cout << std::left << std::setw(20) << "Message Arrival Time";
     std::cout << std::endl;
     std::cout << std::left << std::setfill('#') << std::setw(174) << '#' << std::endl;
+
     node *ptr = head;
     while (ptr != nullptr)
     {
@@ -100,7 +100,6 @@ ipc::ipc(int max_tasks, int &error_code, scheduler *sched)
         mailbox[i] = Mailbox(sched, name.str());
     }
 
-    // *** FIX: make sure msg_count is initialized to 0s ***
     msg_count = new int[max_tasks]();
     error_code = 0;
 }
@@ -130,13 +129,12 @@ int ipc::Message_Send(int Sender_Id, int Destination_Id, char *message, int mess
         default: return -1;
     }
 
-    // *** FIX: copy the message into our own buffer and pass THAT to Message ***
     auto msg_length = strlen(message) + 1;
     char *msg = new char[msg_length];
     memcpy(msg, message, msg_length);
 
     Message new_msg(Sender_Id, Destination_Id, msg_type, msg);
-    delete[] msg; // avoid leak
+    delete[] msg;
 
     new_msg.Message_Arrival_Time = time(nullptr);
     mailbox[Destination_Id].En_Q(new_msg);
@@ -159,7 +157,8 @@ int ipc::Message_Receive(int Task_Id, Message *message)
 {
     if (mailbox[Task_Id].isEmpty()) return 0;
 
-    *message = mailbox[Task_Id].De_Q();
+    Message temp = mailbox[Task_Id].De_Q();
+    *message = temp;
     msg_count[Task_Id]--;
     return 1;
 }
@@ -171,7 +170,6 @@ int ipc::Message_Count(int Task_id)
 
 int ipc::Message_Count()
 {
-    // *** FIX: initialize accumulator ***
     int msg_count_total = 0;
     for (int i = 0; i < max_tasks; i++)
     {
@@ -191,7 +189,6 @@ void ipc::Message_Print(int Task_id)
 int ipc::Message_DeleteAll(int Task_id)
 {
     mailbox[Task_id].Reset();
-    // *** FIX: also reset count and return a value ***
     msg_count[Task_id] = 0;
     return 1;
 }
